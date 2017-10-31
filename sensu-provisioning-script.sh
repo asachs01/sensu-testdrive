@@ -54,10 +54,7 @@ enabled=1' | sudo tee /etc/yum.repos.d/sensu.repo
 # Install curl and jq helper utilities
  sudo yum install curl jq -y
 
-# Use curl to query the API, verify that the client has registered
- curl -s http://127.0.0.1:4567/clients | jq .
-
- # Provide minimal uchiwa conifguration, pointing at API on localhost
+# Provide minimal uchiwa conifguration, pointing at API on localhost
   echo '{
   "sensu": [
     {
