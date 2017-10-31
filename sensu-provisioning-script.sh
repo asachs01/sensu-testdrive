@@ -1,4 +1,5 @@
-IPADDR=ip=$(/sbin/ip -o -4 addr list enp0s8  | awk '{print $4}' | cut -d/ -f1)
+#!/bin/sh
+IPADDR=$(/sbin/ip -o -4 addr list enp0s8  | awk '{print $4}' | cut -d/ -f1)
 
 # Make sure we have all the package repos we need!
  sudo yum install epel-release vim yum-utils openssl -y
@@ -37,14 +38,15 @@ enabled=1' | sudo tee /etc/yum.repos.d/sensu.repo
 }' | sudo tee /etc/sensu/transport.json
 
 # provide minimal client configuration
- echo '{
- "client": {
-   "environment": "development",
-   "subscriptions": [
-     "dev"
+ echo "{
+ \"client\": {
+   \"address\": \"$IPADDR\",
+   \"environment\": \"development\",
+   \"subscriptions\": [
+     \"dev\"
    ]
  }
-}' |sudo tee /etc/sensu/conf.d/client.json
+}" |sudo tee /etc/sensu/conf.d/client.json
 
 # Ensure config file permissions are correct
  sudo chown -R sensu:sensu /etc/sensu
