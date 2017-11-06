@@ -69,7 +69,8 @@ enabled=1' | sudo tee /etc/yum.repos.d/sensu.repo
   }
  }' |sudo tee /etc/sensu/uchiwa.json
 
-# Configure sensu to use SSL
+# Configure sensu to use rabbitmq
+
 echo '{
   "rabbitmq": {
     "host": "127.0.0.1",

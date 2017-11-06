@@ -4,7 +4,7 @@ Vagrant.configure("2") do |config|
   config.vm.hostname = "sensu-workshop-01"
 
 # Note that the line below is for a linux host. For OS X, change this to `en0` or the interface provided in `ifconfig`
-  config.vm.network "public_network", type: "dhcp", bridge: "eno1"
+  config.vm.network "public_network", type: "dhcp"
 
   config.vm.provision "shell", path: "sensu-provisioning-script.sh"
 
