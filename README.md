@@ -9,7 +9,7 @@ vagrant up
 ```
 IP/Port will provided as soon as Vagrant finishes provisioning the vm.
 
-2. Access your Uchiwa dashboard at $IP:3000
+2. Access your Uchiwa dashboard at `$IP:3000`
 
 3. SSH into your Vagrant instance and start poking around!
 ```
