@@ -1,5 +1,5 @@
 ### Prerequisites:
-*BEFORE* you proceed, ensure you've got [Vagrant](vagrantup.com) downloaded.
+*BEFORE* you proceed, ensure you've got and [Virtualbox][1] [Vagrant][2] downloaded.
 
 ### How to Use:
 1. Download the repo:
@@ -16,6 +16,20 @@ IP/Port will provided as soon as Vagrant finishes provisioning the vm.
 vagrant ssh
 ```
 
-4. Take a look at the [Sensu Docs](https://sensuapp.org/docs/1.1/quick-start/the-five-minute-install.html) for the quick version of what the install does.
+4. Take a look at the [Sensu Docs][3] for the quick version of what the install does. 
 
-5. Wanna do more with Sensu? Head over the [repo wiki](https://github.com/asachs01/sensu-up-and-running/wiki), where we'll walk through some of the Sensu basics.
+_NOTE_: The Sensu 5 Minute Install uses Redis as a transport mechanism. While this works in a purely dev environment, _*DO NOT*_ use it in a production setting, or any systems that you care about. There's a bug that prevents it from fully working. 
+
+5. Wanna do more with Sensu? Head over the [repo wiki][4], where we'll walk through some of the Sensu basics.
+
+6. For any additional guides, head over to the [Sensu Docs Site][5].
+
+7. For any help, head to [Sensu's Community Slack Channel][6].
+
+<!-- LINKS -->
+[1]: https://www.virtualbox.org/wiki/Downloads 
+[2]: https://www.vagrantup.com/downloads.html
+[3]: https://docs.sensu.io/sensu-core/latest/quick-start/five-minute-install/
+[4]: https://github.com/asachs01/sensu-up-and-running/wiki
+[5]: https://docs.sensu.io/sensu-core/latest/
+[6]: https://slack.sensu.io

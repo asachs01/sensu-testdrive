@@ -2,8 +2,9 @@
 IPADDR=$(/sbin/ip -o -4 addr list enp0s8  | awk '{print $4}' | cut -d/ -f1)
 
 # Make sure we have all the package repos we need!
-sudo yum install epel-release vim yum-utils openssl -y
+sudo yum install epel-release vim yum-utils openssl httpd -y
 sudo yum groupinstall 'Development Tools' -y
+sudo yum install graphite-web python-carbon -y
 
 # Set up zero-dependency erlang
 echo ' [rabbitmq-erlang]
@@ -139,8 +140,28 @@ echo '{
 }' | sudo tee /etc/sensu/conf.d/checks/check_disk.json
 
 # Filter - 
+echo '{
+  "filters": {
+    "development": {
+      "attributes": {
+        "client": {
+          "environment": "development"
+        }
+      },
+      "negate": false
+    }
+  }
+}' | sudo tee /etc/sensu/conf.d/filters/dev_filter.json
 
-# Mutator - 
+# Mutator - Using the community 'Graphite' plugin, which adds the mutator executable
+echo '{
+  "mutators": {
+    "graphite": {
+      "command": "mutator-graphite.rb"
+    }
+  }
+}' | sudo tee /etc/sensu/conf.d/mutators/graphite.json
+
 
 # Handlers 
 # Using the community 'Mailer' plugin (https://github.com/sensu-plugins/sensu-plugins-mailer)
@@ -165,8 +186,20 @@ echo '{
     }
 }' | sudo tee /etc/sensu/conf.d/handlers/mailer.json
 
-# Using the community 'Graphite' handler
-echo '' | sudo tee /etc/sensu/conf.d/handles/graphite
+# Using the community 'Graphite' handler (https://github.com/sensu-plugins/sensu-plugins-graphite)
+echo '{
+  "handlers": {
+    "graphite_tcp": {
+      "type": "tcp",
+      "socket": {
+        "host":"graphite.example.com",
+        "port":2003
+      },
+      "mutator": "only_check_output"
+    }
+  }
+}' | sudo tee /etc/sensu/conf.d/handlers/graphite_tcp.json
+
 
 
 #Start up other services
@@ -182,3 +215,9 @@ echo -e "=================
 Sensu is now up and running!
 Access it at $IPADDR:3000
 ================="
+
+sudo cp /vagrant/files/storage-schemas.conf /usr/share/graphite/
+PYTHONPATH=/usr/share/graphite/webapp django-admin syncdb --settings=graphite.settings
+sudo echo > /etc/httpd/conf.d/welcome.conf
+sudo touch /var/lib/graphite-web/index
+
