@@ -2,10 +2,8 @@
 IPADDR=$(/sbin/ip -o -4 addr list enp0s8  | awk '{print $4}' | cut -d/ -f1)
 
 # Make sure we have all the package repos we need!
-sudo yum install epel-release vim yum-utils openssl httpd -y
+sudo yum install epel-release vim yum-utils openssl httpd python-devel cairo-devel libffi-devel mod_wsgi git python-pip bitmap-fonts -y
 sudo yum groupinstall 'Development Tools' -y
-sudo yum install graphite-web python-carbon -y
-
 # Set up zero-dependency erlang
 echo ' [rabbitmq-erlang]
 name=rabbitmq-erlang
@@ -135,6 +133,7 @@ echo '{
       "command": "/usr/lib64/nagios/plugins/check_disk  -w 90 -c 95",
       "subscribers": ["dev"],
       "interval": 30
+      "handlers": ["graphite_tcp", "mailer"]
     }
   }
 }' | sudo tee /etc/sensu/conf.d/checks/check_disk.json
@@ -192,7 +191,7 @@ echo '{
     "graphite_tcp": {
       "type": "tcp",
       "socket": {
-        "host":"graphite.example.com",
+        "host":"127.0.0.1",
         "port":2003
       },
       "mutator": "only_check_output"
@@ -216,8 +215,51 @@ Sensu is now up and running!
 Access it at $IPADDR:3000
 ================="
 
-sudo cp /vagrant/files/storage-schemas.conf /usr/share/graphite/
-PYTHONPATH=/usr/share/graphite/webapp django-admin syncdb --settings=graphite.settings
-sudo echo > /etc/httpd/conf.d/welcome.conf
-sudo touch /var/lib/graphite-web/index
+# Now setting up Graphite so we can do some cool graphing stuff
+# Cloning the projects
+cd /usr/local/src
 
+sudo git clone https://github.com/graphite-project/carbon.git
+sudo git clone https://github.com/graphite-project/graphite-web.git
+
+# Installing via Python
+sudo python -m pip install --upgrade pip setuptools
+
+sudo pip install -r /usr/local/src/graphite-web/requirements.txt
+
+cd /usr/local/src/carbon/
+sudo python setup.py install
+ 
+cd /usr/local/src/graphite-web/
+sudo python setup.py install
+
+# Adding our init scripts
+sudo cp /usr/local/src/carbon/distro/redhat/init.d/carbon-* /etc/init.d/
+sudo chmod +x /etc/init.d/carbon-*
+
+# Setting up the db
+sudo PYTHONPATH=/opt/graphite/webapp/ django-admin.py migrate --settings=graphite.settings
+
+# Porting in the static files
+sudo PYTHONPATH=/opt/graphite/webapp/ django-admin.py collectstatic --settings=graphite.settings
+
+# Copying the config files we need
+sudo cp /opt/graphite/conf/carbon.conf.example /opt/graphite/conf/carbon.conf
+sudo cp /opt/graphite/conf/storage-schemas.conf.example /opt/graphite/conf/storage-schemas.conf
+sudo cp /opt/graphite/conf/storage-aggregation.conf.example /opt/graphite/conf/storage-aggregation.conf
+sudo cp /opt/graphite/conf/relay-rules.conf.example /opt/graphite/conf/relay-rules.conf
+sudo cp /opt/graphite/webapp/graphite/local_settings.py.example /opt/graphite/webapp/graphite/local_settings.py
+sudo cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsgi
+ 
+# Setting the appropriate perms
+sudo chown -R apache:apache /opt/graphite/{storage,static,webapp}
+
+# Copy the graphite vhost
+sudo cp /vagrant/graphite.conf /etc/httpd/conf.d/graphite.conf
+
+# Start the graphite services & apache
+sudo service carbon-cache start
+sudo chkconfig carbon-cache on
+ 
+sudo systemctl enable httpd
+sudo systemctl start httpd
