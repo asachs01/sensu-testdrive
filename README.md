@@ -1,6 +1,6 @@
 # Prerequisites
 
-*BEFORE* you proceed, ensure you've got and [Virtualbox][1] and [Vagrant][2] downloaded.
+*BEFORE* you proceed, ensure you've got [Virtualbox][1] and [Vagrant][2] downloaded.
 
 ## How to Use
 
@@ -11,7 +11,7 @@ git clone https://github.com/asachs01/sensu-up-and-running.git && cd sensu-up-an
 vagrant up
 ```
 
-IP/Port will provided as soon as Vagrant finishes provisioning the vm.
+IP/Port will be provided as soon as Vagrant finishes provisioning the vm.
 
 2. Access your Uchiwa dashboard at `$IP:3000`
 
