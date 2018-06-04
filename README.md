@@ -21,7 +21,7 @@ IP/Port will provided as soon as Vagrant finishes provisioning the vm.
 vagrant ssh
 ```
 
-1. Take a look at the [Sensu Docs][3] for the quick version of what the install does.
+4. Take a look at the [Sensu Docs][3] for the quick version of what the install does.
 
 _NOTE_: The Sensu 5 Minute Install uses Redis as a transport mechanism. While this works in a purely dev environment, _*DO NOT*_ use it in a production setting, or any systems that you care about. There's a bug that prevents it from fully working.
 
