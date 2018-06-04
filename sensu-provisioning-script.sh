@@ -2,8 +2,10 @@
 IPADDR=$(/sbin/ip -o -4 addr list enp0s8  | awk '{print $4}' | cut -d/ -f1)
 
 # Make sure we have all the package repos we need!
-sudo yum install epel-release vim yum-utils openssl httpd python-devel cairo-devel libffi-devel mod_wsgi git python-pip bitmap-fonts -y
+sudo yum install epel-release vim yum-utils openssl httpd python-devel cairo-devel libffi-devel mod_wsgi git bitmap-fonts -y
 sudo yum groupinstall 'Development Tools' -y
+sudo yum install python-pip -y
+
 # Set up zero-dependency erlang
 echo ' [rabbitmq-erlang]
 name=rabbitmq-erlang
@@ -120,6 +122,7 @@ sudo yum install -y nagios-plugins nagios-plugins-disk
 sudo yum update -y
 
 sudo sensu-install -p sensu-plugins-network-checks
+sudo sensu-install -p sensu-plugins-disk-checks
 sudo sensu-install -p sensu-plugins-graphite
 sudo sensu-install -p sensu-plugins-http
 sudo sensu-install -p sensu-plugins-mailer
@@ -132,8 +135,21 @@ echo '{
     "fs_free_space": {
       "command": "/usr/lib64/nagios/plugins/check_disk  -w 90 -c 95",
       "subscribers": ["dev"],
-      "interval": 30
-      "handlers": ["graphite_tcp", "mailer"]
+      "interval": 30,
+      "handlers": ["graphite_tcp"]
+    }
+  }
+}' | sudo tee /etc/sensu/conf.d/checks/check_disk.json
+
+echo '{
+  "checks": {
+    "metric-disk-check": {
+      "command": "metrics-disk-usage.rb",
+      "type": "metric",
+      "subscribers": ["dev"],
+      "interval": 10,
+      "handlers": ["graphite_tcp"],
+      "mutator": "only_check_output"
     }
   }
 }' | sudo tee /etc/sensu/conf.d/checks/check_disk.json
@@ -194,7 +210,11 @@ echo '{
         "host":"127.0.0.1",
         "port":2003
       },
-      "mutator": "only_check_output"
+      "mutator": "only_check_output",
+      "prefix": "sensu",
+      "tags": [
+        "dev"
+      ]
     }
   }
 }' | sudo tee /etc/sensu/conf.d/handlers/graphite_tcp.json
@@ -209,11 +229,6 @@ sudo systemctl enable uchiwa
 sudo systemctl enable redis.service
 sudo systemctl enable rabbitmq-server
 sudo systemctl enable sensu-{server,api,client}.service
-
-echo -e "=================
-Sensu is now up and running!
-Access it at $IPADDR:3000
-================="
 
 # Now setting up Graphite so we can do some cool graphing stuff
 # Cloning the projects
@@ -255,7 +270,7 @@ sudo cp /opt/graphite/conf/graphite.wsgi.example /opt/graphite/conf/graphite.wsg
 sudo chown -R apache:apache /opt/graphite/{storage,static,webapp}
 
 # Copy the graphite vhost
-sudo cp /vagrant/graphite.conf /etc/httpd/conf.d/graphite.conf
+sudo cp /vagrant/files/graphite.conf /etc/httpd/conf.d/graphite.conf
 
 # Start the graphite services & apache
 sudo service carbon-cache start
@@ -263,3 +278,11 @@ sudo chkconfig carbon-cache on
  
 sudo systemctl enable httpd
 sudo systemctl start httpd
+
+
+echo -e "=================
+Sensu is now up and running!
+Access it at $IPADDR:3000
+Access the Graphite Dashboard at:$IPADDR
+================="
+
