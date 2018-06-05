@@ -1,4 +1,8 @@
-# Prerequisites
+# NOTE
+
+Hi there! I've moved this repo over to Sensu for it to be maintained there. You can now find this, along with other workshops at https://github.com/sensu/training-vagrant. 
+
+## Prerequisites
 
 *BEFORE* you proceed, ensure you've got [Virtualbox][1] and [Vagrant][2] downloaded.
 
